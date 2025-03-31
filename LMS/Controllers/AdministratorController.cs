@@ -174,7 +174,35 @@ namespace LMS.Controllers
         /// true otherwise.</returns>
         public IActionResult CreateClass(string subject, int number, string season, int year, DateTime start, DateTime end, string location, string instructor)
         {            
-            return Json(new { success = false});
+            var query =
+                from c in db.Classes
+                where c.Location == location
+                where c.Season == season
+                where c.Year == year
+                where TimeOnly.FromDateTime(start).CompareTo(c.End) < 0
+                where TimeOnly.FromDateTime(end).CompareTo(c.Start) > 0
+                select c;
+
+            if (query.Any())
+            {
+                return Json(new { success = false });
+            }
+            else
+            {
+                Class c = new Class
+                {
+                    Season = season,
+                    Year = (uint)year,
+                    Start = TimeOnly.FromDateTime(start),
+                    End = TimeOnly.FromDateTime(end),
+                    Location = location
+                };
+
+                db.Classes.Add(c);
+                db.SaveChanges();
+
+                return Json(new { success = true});
+            }
         }
 
 

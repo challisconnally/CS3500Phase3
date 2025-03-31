@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using MySqlConnector;
 
 namespace LMS.Areas.Identity.Pages.Account
 {
@@ -182,6 +183,8 @@ namespace LMS.Areas.Identity.Pages.Account
 
         /*******Begin code to modify********/
 
+       // List<string> ids = new List<string>();
+
         /// <summary>
         /// Create a new user of the LMS with the specified information and add it to the database.
         /// Assigns the user a unique uID consisting of a 'u' followed by 7 digits.
@@ -194,8 +197,59 @@ namespace LMS.Areas.Identity.Pages.Account
         /// <returns>The uID of the new user</returns>
         string CreateNewUser( string firstName, string lastName, DateTime DOB, string departmentAbbrev, string role )
         {
-            return "unknown";
+            using (LMSContext db = new LMSContext())
+            { 
+                if (role.Equals("Administrator"))
+                {
+                    Administrator administrator = new Administrator
+                    {
+                        UId = "nothing",
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Dob = DateOnly.FromDateTime( DOB ),
+                        
+
+                    };
+
+                    db.Administrators.Add( administrator );
+                    db.SaveChanges();
+                }
+                else if (role.Equals("Professor"))
+                {
+                    Professor prof = new Professor
+                    {
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Dob = DateOnly.FromDateTime(DOB),
+                        Subject = departmentAbbrev
+                    };
+
+                    db.Professors.Add( prof );
+                    db.SaveChanges();
+                    
+                }
+                else
+                {
+                    Student stu = new Student
+                    {
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Dob = DateOnly.FromDateTime(DOB),
+                        Subject = departmentAbbrev
+                    };
+
+                    db.Students.Add( stu );
+                    db.SaveChanges();
+                }
+            }
+                return "unknown";
         }
+
+
+        //private string createUID()
+        //{
+            
+        //}
 
         /*******End code to modify********/
     }

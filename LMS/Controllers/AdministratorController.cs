@@ -50,8 +50,29 @@ namespace LMS.Controllers
         /// false if the department already exists, true otherwise.</returns>
         public IActionResult CreateDepartment(string subject, string name)
         {
-            
-            return Json(new { success = false});
+            var query =
+               from d in db.Departments
+               where d.Subject == subject
+               select d;
+
+            if (query.Any()) // if the query has anything inside of it, then that means 
+                             // we have 
+            {
+                return Json(new { success = false });
+            }
+            else
+            {
+                Department dep = new Department
+                {
+                    Subject = subject,
+                    Name = name
+                };
+
+                db.Departments.Add(dep);
+                db.SaveChanges();
+
+                return Json(new { success = true });
+            }
         }
 
 
@@ -65,8 +86,12 @@ namespace LMS.Controllers
         /// <returns>The JSON result</returns>
         public IActionResult GetCourses(string subject)
         {
-            
-            return Json(null);
+            var query = 
+                from c in db.Courses
+                where c.Subject == subject
+                select new { c.CourseNum, c.Name };
+
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -80,8 +105,12 @@ namespace LMS.Controllers
         /// <returns>The JSON result</returns>
         public IActionResult GetProfessors(string subject)
         {
-            
-            return Json(null);
+            var query = 
+                from p in db.Professors
+                where p.Subject == subject
+                select new { p.LastName, p.FirstName, p.UId};
+
+            return Json(query.ToArray());
             
         }
 
@@ -97,8 +126,32 @@ namespace LMS.Controllers
         /// <returns>A JSON object containing {success = true/false}.
         /// false if the course already exists, true otherwise.</returns>
         public IActionResult CreateCourse(string subject, int number, string name)
-        {           
-            return Json(new { success = false });
+        {
+            var query =
+                from c in db.Courses
+                where c.Subject == subject
+                where c.CourseNum == number
+                select c;
+
+            if (query.Any())
+            {
+                return Json(new { success = false });
+            }
+            else
+            {
+                Course c = new Course
+                {
+                    CourseNum = number,
+                    Name = name,
+                    Subject = subject
+                };
+
+                db.Courses.Add(c);
+                db.SaveChanges();
+
+                return Json(new { success = true});
+            }
+                
         }
 
 

@@ -183,7 +183,7 @@ namespace LMS.Areas.Identity.Pages.Account
 
         /*******Begin code to modify********/
 
-       // List<string> ids = new List<string>();
+        private int currentID = 1;
 
         /// <summary>
         /// Create a new user of the LMS with the specified information and add it to the database.
@@ -201,9 +201,10 @@ namespace LMS.Areas.Identity.Pages.Account
             { 
                 if (role.Equals("Administrator"))
                 {
+                   
                     Administrator administrator = new Administrator
                     {
-                        UId = "nothing",
+                        UId = generateUID(),
                         FirstName = firstName,
                         LastName = lastName,
                         Dob = DateOnly.FromDateTime( DOB ),
@@ -218,6 +219,7 @@ namespace LMS.Areas.Identity.Pages.Account
                 {
                     Professor prof = new Professor
                     {
+                        UId = generateUID(),
                         FirstName = firstName,
                         LastName = lastName,
                         Dob = DateOnly.FromDateTime(DOB),
@@ -232,6 +234,7 @@ namespace LMS.Areas.Identity.Pages.Account
                 {
                     Student stu = new Student
                     {
+                        UId = generateUID(),
                         FirstName = firstName,
                         LastName = lastName,
                         Dob = DateOnly.FromDateTime(DOB),
@@ -246,10 +249,17 @@ namespace LMS.Areas.Identity.Pages.Account
         }
 
 
-        //private string createUID()
-        //{
-            
-        //}
+        private string generateUID()
+        {
+            string uID = currentID.ToString();
+            while (uID.Length < 8 )
+            {
+                uID.Prepend('0');
+            }
+            uID.Prepend('u');
+            currentID++;
+            return uID.ToString();
+        }
 
         /*******End code to modify********/
     }

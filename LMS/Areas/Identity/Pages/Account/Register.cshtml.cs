@@ -246,10 +246,11 @@ namespace LMS.Areas.Identity.Pages.Account
             }
             else
             {
-                max_uID = "u0000001";
+                max_uID = "u0000000";
             }
 
             string max_uID_num = max_uID.Substring(1);
+            Console.WriteLine("This is max_uid_num: " + max_uID_num);
 
 
             if (role.Equals("Administrator"))
@@ -304,23 +305,28 @@ namespace LMS.Areas.Identity.Pages.Account
         // then add 1 to it and use that as the new users uID
         private string generateUID(string max)
         {
+            
+            int newID_num = 0;
             if (int.TryParse(max, out int max_num))
             {
-                int newID_num = 0;
-                if (max_num == 1) 
-                { 
-                    // do nothing
-                }
-                else
-                    newID_num = max_num + 1;
+                Console.WriteLine("this is max_num: " + max_num);
+                newID_num = max_num + 1;
+                Console.WriteLine("this is newID_Num: " + newID_num);
             }
-            string max_num_string = max_num.ToString();
-            while (max_num_string.Length < 8)
-            {
-                max_num_string.Prepend('0');
-            }
-            max_num_string.Prepend('u');
+            string max_num_string = "";
 
+            int length = max_num_string.Length;
+
+            max_num_string += "u";
+            while (length < 6)
+            {
+                max_num_string += "0";
+                length++;
+                Console.WriteLine(max_num_string);
+            }
+            max_num_string += newID_num;
+           
+            // newID_num = max_num + 1;
             return max_num_string;
         }
 

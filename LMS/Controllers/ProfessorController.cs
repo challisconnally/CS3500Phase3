@@ -118,7 +118,24 @@ namespace LMS_CustomIdentity.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetStudentsInClass(string subject, int num, string season, int year)
         {
-            return Json(null);
+            var query =
+                from course in db.Courses
+                join cl in db.Classes on course.CourseId equals cl.CourseId
+                join e in db.Enrolleds on cl.ClassId equals e.ClassId
+                join s in db.Students on e.UId equals s.UId
+                where course.Subject == subject
+                      && course.CourseNum == num
+                      && cl.Season == season
+                      && cl.Year == year
+                select new
+                {
+                    fname = s.FirstName,
+                    lname = s.LastName,
+                    uid = s.UId,
+                    dob = s.Dob,
+                    grade = e.Grade
+                };
+            return Json(query.ToArray());
         }
 
 
@@ -141,6 +158,8 @@ namespace LMS_CustomIdentity.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetAssignmentsInCategory(string subject, int num, string season, int year, string category)
         {
+           // var query =
+             //   from 
             return Json(null);
         }
 

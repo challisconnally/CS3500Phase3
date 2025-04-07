@@ -89,8 +89,27 @@ namespace LMS.Controllers
         /// <param name="number">The course number, as in 5530</param>
         /// <returns>The JSON array</returns>
         public IActionResult GetClassOfferings(string subject, int number)
-        {            
-            return Json(null);
+        {       
+            var query =
+                from c in db.Courses
+                where c.Subject == subject && c.CourseNum == number
+                select new
+                {
+                    cname = c.Name,
+                    Classes = from cl in c.Classes
+                        join prof in db.Professors on cl.UId equals prof.UId
+                        select new
+                        {
+                            season = cl.Season,
+                            year = cl.Year,
+                            location = cl.Location,
+                            start = cl.Start.ToString("hh:mm:ss"),
+                            end = cl.End.ToString("hh:mm:ss"),
+                            fname = prof.FirstName,
+                            lname = prof.LastName
+                        }
+                };
+            return Json(query.ToArray());
         }
 
         /// <summary>

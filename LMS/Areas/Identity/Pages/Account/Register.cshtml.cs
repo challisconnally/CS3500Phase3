@@ -230,17 +230,19 @@ namespace LMS.Areas.Identity.Pages.Account
             else
                 max_stu = query3.ToList().Max();
 
+            Console.WriteLine(max_admin + ", " + max_prof + ", " + max_stu);
+
             string max_uID;
 
-            if (max_admin.CompareTo(max_prof) > 0 && max_admin.CompareTo(max_stu) > 0)
+            if (max_admin.CompareTo(max_prof) < 0 && max_admin.CompareTo(max_stu) < 0)
             {
                 max_uID = max_admin;
             }
-            else if (max_prof.CompareTo(max_admin) > 0 && max_prof.CompareTo(max_stu) > 0)
+            else if (max_prof.CompareTo(max_admin) < 0 && max_prof.CompareTo(max_stu) < 0)
             {
                 max_uID = max_prof;
             }
-            else if (max_stu.CompareTo(max_prof) > 0 && max_stu.CompareTo(max_admin) > 0)
+            else if (max_stu.CompareTo(max_prof) < 0 && max_stu.CompareTo(max_admin) < 0)
             {
                 max_uID = max_stu;
             }
@@ -256,7 +258,7 @@ namespace LMS.Areas.Identity.Pages.Account
             if (role.Equals("Administrator"))
             {
 
-                Administrator administrator = new Administrator
+                Administrator admin = new Administrator
                 {
                     UId = generateUID(max_uID_num),
                     FirstName = firstName,
@@ -266,8 +268,10 @@ namespace LMS.Areas.Identity.Pages.Account
 
                 };
 
-                db.Administrators.Add(administrator);
+                db.Administrators.Add(admin);
                 db.SaveChanges();
+
+                return admin.UId;
             }
             else if (role.Equals("Professor"))
             {
@@ -283,6 +287,7 @@ namespace LMS.Areas.Identity.Pages.Account
                 db.Professors.Add(prof);
                 db.SaveChanges();
 
+                return prof.UId;
             }
             else
             {
@@ -297,8 +302,10 @@ namespace LMS.Areas.Identity.Pages.Account
 
                 db.Students.Add(stu);
                 db.SaveChanges();
+
+                return stu.UId;
             }
-            return "unknown";
+            
         }
 
         // query all three databases, get the max uID by parsing them, make a variable and ad one to it,
@@ -325,7 +332,7 @@ namespace LMS.Areas.Identity.Pages.Account
                 Console.WriteLine(max_num_string);
             }
             max_num_string += newID_num;
-           
+            Console.WriteLine("this is the complete new UID: " + max_num_string);
             // newID_num = max_num + 1;
             return max_num_string;
         }

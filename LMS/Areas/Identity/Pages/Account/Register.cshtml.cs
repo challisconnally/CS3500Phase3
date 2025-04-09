@@ -183,7 +183,7 @@ namespace LMS.Areas.Identity.Pages.Account
 
         /*******Begin code to modify********/
 
-        
+
 
         /// <summary>
         /// Create a new user of the LMS with the specified information and add it to the database.
@@ -198,69 +198,79 @@ namespace LMS.Areas.Identity.Pages.Account
         string CreateNewUser(string firstName, string lastName, DateTime DOB, string departmentAbbrev, string role)
         {
 
-            string max_admin;
-            string max_prof;
-            string max_stu;
+            int max_admin = 0;
+            int max_prof = 0;
+            int max_stu = 0;
 
             var query1 = from a in db.Administrators
                          select a.UId;
+            Console.WriteLine("this is query1 max: " + query1.Max());
             var query2 = from p in db.Professors
                          select p.UId;
+            Console.WriteLine("this is query2 max: " + query2.Max());
+
             var query3 = from s in db.Students
                          select s.UId;
+            Console.WriteLine("this is query3 max: " + query3.Max());
 
-            if (query1.ToList().Count == 0)
-            {
-                max_admin = "z";
-            }
-            else
-                max_admin = query1.ToList().Max();
 
-            if (query2.ToList().Count == 0)
-            {
-                max_prof = "z";
-            }
-            else
-                max_prof = query2.ToList().Max();
 
-            if (query3.ToList().Count == 0)
+            if (int.TryParse(query1.Max().Substring(1), out int result))
             {
-                max_stu = "z";
+                max_admin = result;
+                Console.WriteLine("this is max_admin: " + max_admin);
             }
-            else
-                max_stu = query3.ToList().Max();
+
+
+
+
+            if (int.TryParse(query2.Max().Substring(1), out int result2))
+            {
+                max_prof = result2;
+                Console.WriteLine("this is max_prof: " + max_prof);
+            }
+
+
+
+
+            if (int.TryParse(query3.Max().Substring(1), out int result3))
+            {
+                max_stu = result3;
+                Console.WriteLine("this is max_stu: " + max_stu);
+            }
+
+
 
             Console.WriteLine(max_admin + ", " + max_prof + ", " + max_stu);
 
-            string max_uID;
+            int max_uID;
 
-            if (max_admin.CompareTo(max_prof) < 0 && max_admin.CompareTo(max_stu) < 0)
+            if (max_admin > max_prof && max_admin > max_stu)
             {
                 max_uID = max_admin;
             }
-            else if (max_prof.CompareTo(max_admin) < 0 && max_prof.CompareTo(max_stu) < 0)
+            else if (max_prof > max_admin && max_prof > max_stu)
             {
                 max_uID = max_prof;
             }
-            else if (max_stu.CompareTo(max_prof) < 0 && max_stu.CompareTo(max_admin) < 0)
+            else if (max_stu > max_prof  && max_stu > max_admin)
             {
                 max_uID = max_stu;
             }
             else
             {
-                max_uID = "u0000000";
+                max_uID = 0;
             }
 
-            string max_uID_num = max_uID.Substring(1);
-            Console.WriteLine("This is max_uid_num: " + max_uID_num);
 
+            Console.WriteLine("This is max_uid_num: " + max_uID);
 
             if (role.Equals("Administrator"))
             {
 
                 Administrator admin = new Administrator
                 {
-                    UId = generateUID(max_uID_num),
+                    UId = generateUID(max_uID),
                     FirstName = firstName,
                     LastName = lastName,
                     Dob = DateOnly.FromDateTime(DOB),
@@ -277,7 +287,7 @@ namespace LMS.Areas.Identity.Pages.Account
             {
                 Professor prof = new Professor
                 {
-                    UId = generateUID(max_uID_num),
+                    UId = generateUID(max_uID),
                     FirstName = firstName,
                     LastName = lastName,
                     Dob = DateOnly.FromDateTime(DOB),
@@ -293,7 +303,7 @@ namespace LMS.Areas.Identity.Pages.Account
             {
                 Student stu = new Student
                 {
-                    UId = generateUID(max_uID_num),
+                    UId = generateUID(max_uID),
                     FirstName = firstName,
                     LastName = lastName,
                     Dob = DateOnly.FromDateTime(DOB),
@@ -305,21 +315,23 @@ namespace LMS.Areas.Identity.Pages.Account
 
                 return stu.UId;
             }
-            
+
         }
 
         // query all three databases, get the max uID by parsing them, make a variable and ad one to it,
         // then add 1 to it and use that as the new users uID
-        private string generateUID(string max)
+        private string generateUID(int max)
         {
-            
+
             int newID_num = 0;
-            if (int.TryParse(max, out int max_num))
+
+            if (max != 0)
             {
-                Console.WriteLine("this is max_num: " + max_num);
-                newID_num = max_num + 1;
-                Console.WriteLine("this is newID_Num: " + newID_num);
+                newID_num = max + 1;
             }
+
+            Console.WriteLine("this is newID_Num: " + newID_num);
+
             string max_num_string = "";
 
             int length = max_num_string.Length;

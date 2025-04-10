@@ -61,13 +61,13 @@ namespace LMS.Controllers
                 {
                     subject = d.Subject,
                     dname = d.Name,
-                    Courses = from c in db.Courses
+                    Courses = (from c in db.Courses
                               where c.Subject == d.Subject
                               select new
                               {
                                   number = c.CourseNum,
                                   cname = c.Name,
-                              }
+                              }).ToList()
 
                 };
 

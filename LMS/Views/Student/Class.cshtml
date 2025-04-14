@@ -14,12 +14,12 @@
         <div class="panel-body">
             <table id="tblAssignments" class="table table-bordered table-striped table-responsive table-hover">
                 <thead>
-                    <tr>
-                        <th align="left" class="productth">Name</th>
-                        <th align="left" class="productth">Category</th>
-                        <th align="left" class="productth">Due</th>
-                        <th align="left" class="productth">Score</th>
-                    </tr>
+                <tr>
+                    <th align="left" class="productth">Name</th>
+                    <th align="left" class="productth">Category</th>
+                    <th align="left" class="productth">Due</th>
+                    <th align="left" class="productth">Score</th>
+                </tr>
                 </thead>
             </table>
         </div>
@@ -32,82 +32,82 @@
 
 
 @section Scripts
-  {
+{
     <script type="text/javascript">
 
-    LoadData();
+        LoadData();
 
-    function PopulateTable(tbl, offerings) {
-      var newBody = document.createElement("tbody");
+        function PopulateTable(tbl, offerings) {
+            var newBody = document.createElement("tbody");
 
 
-      $.each(offerings, function (i, item) {
-        var tr = document.createElement("tr");
+            $.each(offerings, function (i, item) {
+                var tr = document.createElement("tr");
 
-        var td = document.createElement("td");
-        var a = document.createElement("a");
-        a.setAttribute("href", "/Student/Assignment/?subject=" + '@ViewData["subject"]' + "&num=" + '@ViewData["num"]' + "&season=" + '@ViewData["season"]' + "&year=" + '@ViewData["year"]' + "&cat=" + item.cname + "&aname=" + item.aname);
-        a.appendChild(document.createTextNode(item.aname));
-        td.appendChild(a);
-        tr.appendChild(td);
+                var td = document.createElement("td");
+                var a = document.createElement("a");
+                a.setAttribute("href", "/Student/Assignment/?subject=" + '@ViewData["subject"]' + "&num=" + '@ViewData["num"]' + "&season=" + '@ViewData["season"]' + "&year=" + '@ViewData["year"]' + "&cat=" + item.cname + "&aname=" + item.aname);
+                a.appendChild(document.createTextNode(item.aname));
+                td.appendChild(a);
+                tr.appendChild(td);
 
-        //var td = document.createElement("td");
-        //td.appendChild(document.createTextNode(item.aname));
-        //tr.appendChild(td);
+                //var td = document.createElement("td");
+                //td.appendChild(document.createTextNode(item.aname));
+                //tr.appendChild(td);
 
-        var td = document.createElement("td");
-        td.appendChild(document.createTextNode(item.cname));
-        tr.appendChild(td);
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(item.cname));
+                tr.appendChild(td);
 
-        var td = document.createElement("td");
-        td.appendChild(document.createTextNode(item.due));
-        tr.appendChild(td);
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(item.due));
+                tr.appendChild(td);
 
-        var td = document.createElement("td");
-        if (item.score != null) {
-          td.appendChild(document.createTextNode(item.score));
+                var td = document.createElement("td");
+                if (item.score != null) {
+                    td.appendChild(document.createTextNode(item.score));
+                } else {
+                    td.appendChild(document.createTextNode("--"));
+                }
+
+                tr.appendChild(td);
+
+                newBody.appendChild(tr);
+            });
+
+            tbl.appendChild(newBody);
+
         }
-        else {
-          td.appendChild(document.createTextNode("--"));
-        }
 
-        tr.appendChild(td);
+        function LoadData() {
 
-        newBody.appendChild(tr);
-      });
+            classname.innerText = '@ViewData["subject"] @ViewData["num"] @ViewData["season"] @ViewData["year"]';
 
-      tbl.appendChild(newBody);
+            var tbl = document.getElementById("tblAssignments");
 
-    }
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetAssignmentsInClass", "Student")',
+                dataType: 'json',
+                data: {
+                    subject: '@ViewData["subject"]',
+                    num: Number('@ViewData["num"]'),
+                    season: '@ViewData["season"]',
+                    year: Number('@ViewData["year"]'),
+                    uid: '@User.Identity.Name'
+                },
+                success: function (data, status) {
+                    //alert(JSON.stringify(data));
+                    PopulateTable(tbl, data);
 
-    function LoadData() {
-
-      classname.innerText = '@ViewData["subject"] @ViewData["num"] @ViewData["season"] @ViewData["year"]';
-
-      var tbl = document.getElementById("tblAssignments");
-
-      $.ajax({
-        type: 'POST',
-        url: '@Url.Action("GetAssignmentsInClass", "Student")',
-        dataType: 'json',
-        data: {
-          subject: '@ViewData["subject"]',
-          num: Number('@ViewData["num"]'),
-          season: '@ViewData["season"]',
-          year: Number('@ViewData["year"]'),
-          uid: '@User.Identity.Name'},
-        success: function (data, status) {
-          //alert(JSON.stringify(data));
-          PopulateTable(tbl, data);
-
-        },
+                },
                 error: function (xhr, ajaxOptions, thrownError) {
                     alert(xhr.responseText);
                 }
-        });
+            });
 
 
-    }
+        }
 
     </script>
 

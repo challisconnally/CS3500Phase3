@@ -25,10 +25,11 @@ public class Program
             .AddEntityFrameworkStores<LMSIdentityDbContext>();
 
         // Uncomment the below after scaffolding
-        
-        builder.Services.AddDbContext<LMSContext>( options =>
-            options.UseMySql( builder.Configuration["LMS:LMSConnectionString"], ServerVersion.AutoDetect( builder.Configuration["LMS:LMSConnectionString"] ) ) );
-        
+
+        builder.Services.AddDbContext<LMSContext>(options =>
+            options.UseMySql(builder.Configuration["LMS:LMSConnectionString"],
+                ServerVersion.AutoDetect(builder.Configuration["LMS:LMSConnectionString"])));
+
 
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
@@ -36,18 +37,18 @@ public class Program
 
 
         builder.Services.Configure<IdentityOptions>(options =>
-                {
-                    // Default Password settings.
-                    options.Password.RequireDigit = false;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequireUppercase = false;
-                    options.Password.RequiredLength = 1;
-                    options.Password.RequiredUniqueChars = 1;
-                    options.SignIn.RequireConfirmedAccount = false;
-                    options.SignIn.RequireConfirmedEmail = false;
-                    options.SignIn.RequireConfirmedPhoneNumber = false;
-                });
+        {
+            // Default Password settings.
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequiredLength = 1;
+            options.Password.RequiredUniqueChars = 1;
+            options.SignIn.RequireConfirmedAccount = false;
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        });
 
 
         var app = builder.Build();
@@ -71,8 +72,8 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+            "default",
+            "{controller=Home}/{action=Index}/{id?}");
 
         app.MapRazorPages();
 

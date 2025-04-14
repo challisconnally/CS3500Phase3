@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using LMS.Models;
 using System.Runtime.CompilerServices;
+using LMS.Models;
+using Microsoft.AspNetCore.Mvc;
 
-[assembly: InternalsVisibleTo( "LMSControllerTests" )]
+[assembly: InternalsVisibleTo("LMSControllerTests")]
+
 namespace LMS.Controllers;
 
 public class HomeController : Controller
@@ -17,18 +18,9 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        if (User.IsInRole("Student"))
-        {
-            return Redirect("/Student/Index");
-        }
-        if (User.IsInRole("Professor"))
-        {
-            return Redirect("/Professor/Index");
-        }
-        if (User.IsInRole("Administrator"))
-        {
-            return Redirect("/Administrator/Index");
-        }
+        if (User.IsInRole("Student")) return Redirect("/Student/Index");
+        if (User.IsInRole("Professor")) return Redirect("/Professor/Index");
+        if (User.IsInRole("Administrator")) return Redirect("/Administrator/Index");
 
         return View();
     }
@@ -45,4 +37,3 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
-

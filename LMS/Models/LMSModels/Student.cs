@@ -1,24 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace LMS.Models.LMSModels;
 
-namespace LMS.Models.LMSModels
+public class Student
 {
-    public partial class Student
+    public Student()
     {
-        public Student()
-        {
-            Enrolleds = new HashSet<Enrolled>();
-            Submissions = new HashSet<Submission>();
-        }
-
-        public string UId { get; set; } = null!;
-        public string FirstName { get; set; } = null!;
-        public string LastName { get; set; } = null!;
-        public DateOnly Dob { get; set; }
-        public string Subject { get; set; } = null!;
-
-        public virtual Department SubjectNavigation { get; set; } = null!;
-        public virtual ICollection<Enrolled> Enrolleds { get; set; }
-        public virtual ICollection<Submission> Submissions { get; set; }
+        Enrolleds = new HashSet<Enrolled>();
+        Submissions = new HashSet<Submission>();
     }
+
+    public string UId { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+    public DateOnly Dob { get; set; }
+    public string Subject { get; set; } = null!;
+
+    public virtual Department SubjectNavigation { get; set; } = null!;
+    public virtual ICollection<Enrolled> Enrolleds { get; set; }
+    public virtual ICollection<Submission> Submissions { get; set; }
 }

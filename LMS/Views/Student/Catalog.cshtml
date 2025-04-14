@@ -1,14 +1,14 @@
 ﻿
 @{
-ViewData["Title"] = "Catalog";
+  ViewData["Title"] = "Catalog";
 }
 
 <h4 id="topElement">Course Catalog</h4>
 
 
 @section Scripts
-  {
-    <script type="text/javascript">
+{
+  <script type="text/javascript">
 
     LoadData();
 
@@ -103,16 +103,15 @@ ViewData["Title"] = "Catalog";
           });
 
         },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    alert(xhr.responseText);
-                }
-        });
+        error: function (xhr, ajaxOptions, thrownError) {
+          alert(xhr.responseText);
+        }
+      });
 
     }
 
 
-
-    </script>
+  </script>
 
 }
 

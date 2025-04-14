@@ -1,11 +1,7 @@
-﻿using System;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
-namespace LMS.Models
+namespace LMS.Models;
+
+public class ApplicationUser : IdentityUser
 {
-	public class ApplicationUser : IdentityUser
-	{
-
-	}
 }
-

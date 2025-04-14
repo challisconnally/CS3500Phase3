@@ -128,9 +128,6 @@ public class StudentController : Controller
                 score = sub.Score
             };
 
-            
-            
-
         return Json(null);
     }
 
@@ -155,6 +152,7 @@ public class StudentController : Controller
     public IActionResult SubmitAssignmentText(string subject, int num, string season, int year,
         string category, string asgname, string uid, string contents)
     {
+        
         return Json(new { success = false });
     }
 
@@ -173,7 +171,43 @@ public class StudentController : Controller
     /// </returns>
     public IActionResult Enroll(string subject, int num, string season, int year, string uid)
     {
-        return Json(new { success = false });
+        var query =
+            from cl in db.Classes
+            join course in db.Courses on cl.CourseId equals course.CourseId
+            where course.Subject == subject
+                  && course.CourseNum == num
+                  && cl.Season == season
+                  && cl.Year == year
+            select cl;
+
+        var classObj = query.FirstOrDefault();
+
+        if (classObj == null)
+        {
+            return Json(new { success = false });
+        }
+
+        var enrolledQuery =
+            from e in db.Enrolleds
+            where e.UId == uid && e.ClassId == classObj.ClassId
+            select e;
+
+        if (enrolledQuery.Any())
+        {
+            return Json(new { success = false });
+        }
+
+        var enrollment = new Enrolled
+        {
+            UId = uid,
+            ClassId = classObj.ClassId,
+            Grade = "--"
+        };
+
+        db.Enrolleds.Add(enrollment);
+        db.SaveChanges();
+
+        return Json(new { success = true });
     }
 
 

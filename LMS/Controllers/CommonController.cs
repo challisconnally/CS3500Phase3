@@ -29,8 +29,8 @@ public class CommonController : Controller
         var query = from d in db.Departments
             select new
             {
-                d.Name,
-                d.Subject
+                name = d.Name,
+                subject = d.Subject
             };
 
         return Json(query.ToArray());
@@ -56,7 +56,7 @@ public class CommonController : Controller
             {
                 subject = d.Subject,
                 dname = d.Name,
-                Courses = (from c in db.Courses
+                courses = (from c in db.Courses
                     where c.Subject == d.Subject
                     select new
                     {
@@ -90,19 +90,22 @@ public class CommonController : Controller
             select new
             {
                 cname = c.Name,
-                Classes = from cl in c.Classes
-                    join prof in db.Professors on cl.UId equals prof.UId
-                    select new
-                    {
-                        season = cl.Season,
-                        year = cl.Year,
-                        location = cl.Location,
-                        start = cl.Start.ToString("hh:mm:ss"),
-                        end = cl.End.ToString("hh:mm:ss"),
-                        fname = prof.FirstName,
-                        lname = prof.LastName
-                    }
+                Classes = (from cl in c.Classes
+                          join prof in db.Professors on cl.UId equals prof.UId into info
+                          from p in info.DefaultIfEmpty()
+                          select new
+                          {
+                              season = cl.Season,
+                              year = cl.Year,
+                              location = cl.Location,
+                              start = cl.Start.ToString("hh:mm:ss"),
+                              end = cl.End.ToString("hh:mm:ss"),
+                              fname = p.FirstName,
+                              lname = p.LastName
+                          }).ToList()
             };
+
+        Console.WriteLine(query);
         return Json(query.ToArray());
     }
 

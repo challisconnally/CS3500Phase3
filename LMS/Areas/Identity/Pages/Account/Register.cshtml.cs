@@ -243,7 +243,7 @@ public class RegisterModel : PageModel
         var length = max_num_string.Length;
 
         max_num_string += "u";
-        while (length < 6)
+        while (length < (7 - newID_num.ToString().Length))
         {
             max_num_string += "0";
             length++;

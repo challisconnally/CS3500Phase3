@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Drawing.Printing;
+using System.Runtime.CompilerServices;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -83,7 +84,8 @@ public class AdministratorController : Controller
         var query =
             from c in db.Courses
             where c.Subject == subject
-            select new { c.CourseNum, c.Name };
+            select new { number = c.CourseNum, 
+                        name = c.Name };
 
         return Json(query.ToArray());
     }
@@ -102,7 +104,12 @@ public class AdministratorController : Controller
         var query =
             from p in db.Professors
             where p.Subject == subject
-            select new { p.LastName, p.FirstName, p.UId };
+            select new
+            {
+                lname = p.LastName,
+                fname = p.FirstName,
+                uid = p.UId
+            };
 
         return Json(query.ToArray());
     }
@@ -166,6 +173,7 @@ public class AdministratorController : Controller
     public IActionResult CreateClass(string subject, int number, string season, int year, DateTime start, DateTime end,
         string location, string instructor)
     {
+        string num = number.ToString();
         var query =
             from c in db.Classes
             where c.Location == location
@@ -175,16 +183,28 @@ public class AdministratorController : Controller
             where TimeOnly.FromDateTime(end).CompareTo(c.Start) > 0
             select c;
 
+
+
         if (query.Any()) return Json(new { success = false });
 
         {
+            var query2 = from cour in db.Courses
+                         where cour.CourseNum == number
+                         where cour.Subject == subject
+                         select cour.CourseId;
+
+            int id = query2.First();
+            Console.WriteLine("id of course is : " + id);
+
             var c = new Class
             {
                 Season = season,
                 Year = (uint)year,
                 Start = TimeOnly.FromDateTime(start),
                 End = TimeOnly.FromDateTime(end),
-                Location = location
+                Location = location,
+                UId = instructor,
+                CourseId = id
             };
 
             db.Classes.Add(c);

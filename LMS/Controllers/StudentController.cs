@@ -108,6 +108,29 @@ public class StudentController : Controller
     /// <returns>The JSON array</returns>
     public IActionResult GetAssignmentsInClass(string subject, int num, string season, int year, string uid)
     {
+        var query =
+            from e in db.Enrolleds
+            join c in db.Classes on e.ClassId equals c.ClassId
+            join cour in db.Courses on c.CourseId equals cour.CourseId
+            join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+            join assign in db.Assignments on ac.AssignmentCategoriesId equals assign.AssignmentCategoriesId
+            join sub in db.Submissions on assign.AssignmentId equals sub.AssignmentId
+            where e.UId == uid
+            where cour.CourseNum == num
+            where c.Season == season
+            where c.Year == year
+            where cour.Subject == subject
+            select new
+            {
+                aname = assign.Name,
+                cname = ac.Name,
+                due = assign.DueDate,
+                score = sub.Score
+            };
+
+            
+            
+
         return Json(null);
     }
 

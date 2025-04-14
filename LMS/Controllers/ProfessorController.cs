@@ -116,20 +116,23 @@ public class ProfessorController : Controller
     {
         var query =
             from course in db.Courses
-            join cl in db.Classes on course.CourseId equals cl.CourseId
-            join e in db.Enrolleds on cl.ClassId equals e.ClassId
-            join s in db.Students on e.UId equals s.UId
+            join cl in db.Classes on course.CourseId equals cl.CourseId into cc
+            from stuff in cc.DefaultIfEmpty()
+            join e in db.Enrolleds on stuff.ClassId equals e.ClassId into info
+            from i in info.DefaultIfEmpty()
+            join s in db.Students on i.UId equals s.UId into stu_info
+            from si in stu_info.DefaultIfEmpty()
             where course.Subject == subject
                   && course.CourseNum == num
-                  && cl.Season == season
-                  && cl.Year == year
+                  && stuff.Season == season
+                  && stuff.Year == year
             select new
             {
-                fname = s.FirstName,
-                lname = s.LastName,
-                uid = s.UId,
-                dob = s.Dob,
-                grade = e.Grade
+                fname = si.FirstName,
+                lname = si.LastName,
+                uid = si.UId,
+                dob = si.Dob,
+                grade = i.Grade
             };
         return Json(query.ToArray());
     }

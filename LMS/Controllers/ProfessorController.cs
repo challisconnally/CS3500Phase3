@@ -158,9 +158,34 @@ public class ProfessorController : Controller
     /// <returns>The JSON array</returns>
     public IActionResult GetAssignmentsInCategory(string subject, int num, string season, int year, string category)
     {
-        // var query =
-        //   from 
-        return Json(null);
+        var query =
+            (from course in db.Courses
+                join c in db.Classes on course.CourseId equals c.CourseId
+                where course.Subject == subject
+                      && course.CourseNum == num
+                      && c.Season == season
+                      && c.Year == year
+                select c.ClassId).FirstOrDefault();
+
+        if (query == 0)
+        {
+            return Json(new List<object>()); // if class not found return empty array
+        }
+
+        var assignQuery =
+            from ac in db.AssignmentCategories
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            where ac.ClassId == query
+                  && (category == null || ac.Name == category)
+            select new
+            {
+                aname = a.Name,
+                cname = ac.Name,
+                due = a.DueDate,
+                submissions = db.Submissions.Count(s => s.AssignmentId == a.AssignmentId)
+            };
+
+        return Json(assignQuery.ToArray());
     }
 
 

@@ -152,8 +152,50 @@ public class StudentController : Controller
     public IActionResult SubmitAssignmentText(string subject, int num, string season, int year,
         string category, string asgname, string uid, string contents)
     {
-        
-        return Json(new { success = false });
+        var assignmentQuery = 
+            (from course in db.Courses
+                join c in db.Classes on course.CourseId equals c.CourseId
+                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+                join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+                where course.Subject == subject
+                      && course.CourseNum == num
+                      && c.Season == season
+                      && c.Year == year
+                      && ac.Name == category
+                      && a.Name == asgname
+                        select a).FirstOrDefault();
+
+        if (assignmentQuery == null)
+        {
+            return Json(new { success = false });
+        }
+
+        var submissionQuery =
+            (from s in db.Submissions
+                where s.UId == uid && s.AssignmentId == assignmentQuery.AssignmentId
+                select s).FirstOrDefault();
+
+        if (submissionQuery != null)
+        {
+            submissionQuery.Contents = contents;
+            submissionQuery.SubmissionTime = DateTime.Now;
+        }
+        else
+        {
+            var newSubmission = new Submission
+            {
+                UId = uid,
+                AssignmentId = assignmentQuery.AssignmentId,
+                Contents = contents,
+                SubmissionTime = DateTime.Now,
+                Score = 0
+            };
+            db.Submissions.Add(newSubmission);
+        }
+
+        db.SaveChanges();
+
+        return Json(new { success = true });
     }
 
 

@@ -266,7 +266,7 @@ public class StudentController : Controller
     /// <returns>A JSON object containing a single field called "gpa" with the number value</returns>
     public IActionResult GetGPA(string uid)
     {
-        double gpa;
+        double calc_gpa;
         var query =
             from e in db.Enrolleds
             where e.UId == uid
@@ -274,8 +274,8 @@ public class StudentController : Controller
 
         if (!query.Any())
         {
-            gpa = 0.0;
-            return Json(new { gpa = gpa });
+            calc_gpa = 0.0;
+            return Json(new { gpa = calc_gpa });
         }
 
         List<String> gradeList = query.ToList();
@@ -349,10 +349,10 @@ public class StudentController : Controller
             }
         }
         
-        gpa = (totalGradePoints / totalClasses);
+        calc_gpa = (totalGradePoints / totalClasses);
 
 
-        return Json(gpa = gpa);
+        return Json( new {gpa = calc_gpa});
     }
 
     /*******End code to modify********/

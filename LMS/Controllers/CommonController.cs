@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 [assembly: InternalsVisibleTo("LMSControllerTests")]
@@ -27,11 +28,11 @@ public class CommonController : Controller
     public IActionResult GetDepartments()
     {
         var query = from d in db.Departments
-            select new
-            {
-                name = d.Name,
-                subject = d.Subject
-            };
+                    select new
+                    {
+                        name = d.Name,
+                        subject = d.Subject
+                    };
 
         return Json(query.ToArray());
     }
@@ -57,12 +58,12 @@ public class CommonController : Controller
                 subject = d.Subject,
                 dname = d.Name,
                 courses = (from c in db.Courses
-                    where c.Subject == d.Subject
-                    select new
-                    {
-                        number = c.CourseNum,
-                        cname = c.Name
-                    }).ToList()
+                           where c.Subject == d.Subject
+                           select new
+                           {
+                               number = c.CourseNum,
+                               cname = c.Name
+                           }).ToList()
             };
 
         return Json(query.ToArray());
@@ -85,27 +86,22 @@ public class CommonController : Controller
     public IActionResult GetClassOfferings(string subject, int number)
     {
         var query =
+
             from c in db.Courses
             where c.Subject == subject && c.CourseNum == number
+            join stuff in db.Classes on c.CourseId equals stuff.CourseId
+            join prof in db.Professors on stuff.UId equals prof.UId
             select new
             {
-                cname = c.Name,
-                Classes = (from cl in c.Classes
-                          join prof in db.Professors on cl.UId equals prof.UId into info
-                          from p in info.DefaultIfEmpty()
-                          select new
-                          {
-                              season = cl.Season,
-                              year = cl.Year,
-                              location = cl.Location,
-                              start = cl.Start.ToString("hh:mm:ss"),
-                              end = cl.End.ToString("hh:mm:ss"),
-                              fname = p.FirstName,
-                              lname = p.LastName
-                          }).ToList()
+                season = stuff.Season,
+                year = stuff.Year,
+                location = stuff.Location,
+                start = stuff.Start.ToString("hh:mm:ss"),
+                end = stuff.End.ToString("hh:mm:ss"),
+                fname = prof.FirstName,
+                lname = prof.LastName
             };
 
-        Console.WriteLine(query);
         return Json(query.ToArray());
     }
 
@@ -124,7 +120,23 @@ public class CommonController : Controller
     public IActionResult GetAssignmentContents(string subject, int num, string season, int year, string category,
         string asgname)
     {
-        return Content("");
+        var query =
+        from c in db.Courses
+        where c.Subject == subject && c.CourseNum == num
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
+        where ac.Name.Equals(category)
+        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+        where a.Name.Equals(asgname)
+        select a;
+
+        if (query.Any())
+        {
+            return Content(query.First().Contents);
+        }
+        else 
+            return Content("");
     }
 
 
@@ -145,7 +157,25 @@ public class CommonController : Controller
     public IActionResult GetSubmissionText(string subject, int num, string season, int year, string category,
         string asgname, string uid)
     {
-        return Content("");
+        var query =
+        from c in db.Courses
+        where c.Subject == subject && c.CourseNum == num
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
+        where ac.Name.Equals(category)
+        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+        where a.Name.Equals(asgname)
+        join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
+        where sub.UId.Equals(uid)
+        select sub;
+
+        if (query.Any())
+        {
+            return Content(query.First().Contents);
+        }
+        else
+            return Content("");
     }
 
 

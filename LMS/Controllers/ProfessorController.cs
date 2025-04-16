@@ -122,10 +122,10 @@ public class ProfessorController : Controller
             from i in info.DefaultIfEmpty()
             join s in db.Students on i.UId equals s.UId into stu_info
             from si in stu_info.DefaultIfEmpty()
-            where course.Subject == subject
+            where course.Subject.Equals(subject)
                   && course.CourseNum == num
-                  && stuff.Season == season
-                  && stuff.Year == year
+                  && stuff.Season.Equals(season)
+                  && stuff.Year.Equals(year)
             select new
             {
                 fname = si.FirstName,
@@ -161,10 +161,10 @@ public class ProfessorController : Controller
         var query =
             (from course in db.Courses
                 join c in db.Classes on course.CourseId equals c.CourseId
-                where course.Subject == subject
+                where course.Subject.Equals(subject)
                       && course.CourseNum == num
-                      && c.Season == season
-                      && c.Year == year
+                      && c.Season.Equals(season)
+                      && c.Year.Equals(year)
                 select c.ClassId).FirstOrDefault();
 
         if (query == 0)
@@ -203,7 +203,19 @@ public class ProfessorController : Controller
     /// <returns>The JSON array</returns>
     public IActionResult GetAssignmentCategories(string subject, int num, string season, int year)
     {
-        return Json(null);
+        var query =
+            from cour in db.Courses
+            where cour.Subject.Equals(subject) && cour.CourseNum == num
+            join cc in db.Classes on cour.CourseId equals cc.CourseId
+            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
+            select new
+            {
+                name = ac.Name,
+                weight = ac.GradeWeight
+            };
+
+        return Json(query.ToArray());
     }
 
     /// <summary>
@@ -220,7 +232,40 @@ public class ProfessorController : Controller
     public IActionResult CreateAssignmentCategory(string subject, int num, string season, int year, string category,
         int catweight)
     {
-        return Json(new { success = false });
+        var query =
+            from cour in db.Courses
+            where cour.Subject.Equals(subject) && cour.CourseNum == num
+            join cc in db.Classes on cour.CourseId equals cc.CourseId
+            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
+            where ac.Name == category && ac.GradeWeight == catweight
+            select cour;
+        
+        if (query.Any())
+        {
+            return Json(new { success = false });
+        }
+
+        var query2 =
+            from cour in db.Courses
+            where cour.Subject.Equals(subject) && cour.CourseNum == num
+            join cc in db.Classes on cour.CourseId equals cc.CourseId
+            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            select cc.ClassId;
+
+        int id = query2.First();
+        var cat = new AssignmentCategory
+        {
+            Name = category,
+            GradeWeight = (uint)catweight,
+            ClassId = id
+        };
+
+        db.AssignmentCategories.Add(cat);
+        db.SaveChanges();
+
+        return Json(new { success = true });
+
     }
 
     /// <summary>

@@ -266,7 +266,93 @@ public class StudentController : Controller
     /// <returns>A JSON object containing a single field called "gpa" with the number value</returns>
     public IActionResult GetGPA(string uid)
     {
-        return Json(null);
+        double gpa;
+        var query =
+            from e in db.Enrolleds
+            where e.UId == uid
+            select e.Grade;
+
+        if (!query.Any())
+        {
+            gpa = 0.0;
+            return Json(new { gpa = gpa });
+        }
+
+        List<String> gradeList = query.ToList();
+        Console.WriteLine("This is the grade list:" + gradeList);
+        double totalGradePoints = 0;
+        int totalClasses = 0;
+        foreach (var grade in gradeList)
+        {
+            if (grade == "A")
+            {
+                totalGradePoints += 4.0;
+                totalClasses++;
+            }
+            else if (grade == "A-")
+            {
+                totalGradePoints += 3.7;
+                totalClasses++;
+            }
+            else if (grade == "B+")
+            {
+                totalGradePoints += 3.3;
+                totalClasses++;
+            }
+            else if (grade == "B")
+            {
+                totalGradePoints += 3.0;
+                totalClasses++;
+            }
+            else if (grade == "B-")
+            {
+                totalGradePoints += 2.7;
+                totalClasses++;
+            }
+            else if (grade == "C+")
+            {
+                totalGradePoints += 2.3;
+                totalClasses++;
+            }
+            else if (grade == "C")
+            {
+                totalGradePoints += 2.0;
+                totalClasses++;
+            }
+            else if (grade == "C-")
+            {
+                totalGradePoints += 1.7;
+                totalClasses++;
+            }
+            else if (grade == "D+")
+            {
+                totalGradePoints += 1.3;
+                totalClasses++;
+            }
+            else if (grade == "D")
+            {
+                totalGradePoints += 1.0;
+                totalClasses++;
+            }
+            else if (grade == "D-")
+            {
+                totalGradePoints += 0.7;
+                totalClasses++;
+            }
+            else if (grade == "E")
+            {
+                totalGradePoints += 0.0;
+                totalClasses++;
+            } else
+            {
+                continue;
+            }
+        }
+        
+        gpa = (totalGradePoints / totalClasses);
+
+
+        return Json(gpa = gpa);
     }
 
     /*******End code to modify********/

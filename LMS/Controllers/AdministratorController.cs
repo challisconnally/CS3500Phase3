@@ -84,8 +84,11 @@ public class AdministratorController : Controller
         var query =
             from c in db.Courses
             where c.Subject == subject
-            select new { number = c.CourseNum, 
-                        name = c.Name };
+            select new
+            {
+                number = c.CourseNum,
+                name = c.Name
+            };
 
         return Json(query.ToArray());
     }
@@ -187,31 +190,31 @@ public class AdministratorController : Controller
 
         if (query.Any()) return Json(new { success = false });
 
+
+        var query2 = from cour in db.Courses
+                     where cour.CourseNum == number
+                     where cour.Subject == subject
+                     select cour.CourseId;
+
+        int id = query2.First();
+        Console.WriteLine("id of course is : " + id);
+
+        var c = new Class
         {
-            var query2 = from cour in db.Courses
-                         where cour.CourseNum == number
-                         where cour.Subject == subject
-                         select cour.CourseId;
+            Season = season,
+            Year = (uint)year,
+            Start = TimeOnly.FromDateTime(start),
+            End = TimeOnly.FromDateTime(end),
+            Location = location,
+            UId = instructor,
+            CourseId = id
+        };
 
-            int id = query2.First();
-            Console.WriteLine("id of course is : " + id);
+        db.Classes.Add(c);
+        db.SaveChanges();
 
-            var c = new Class
-            {
-                Season = season,
-                Year = (uint)year,
-                Start = TimeOnly.FromDateTime(start),
-                End = TimeOnly.FromDateTime(end),
-                Location = location,
-                UId = instructor,
-                CourseId = id
-            };
+        return Json(new { success = true });
 
-            db.Classes.Add(c);
-            db.SaveChanges();
-
-            return Json(new { success = true });
-        }
     }
 
 

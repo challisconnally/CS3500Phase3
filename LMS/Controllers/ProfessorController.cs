@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -160,12 +161,12 @@ public class ProfessorController : Controller
     {
         var query =
             (from course in db.Courses
-                join c in db.Classes on course.CourseId equals c.CourseId
-                where course.Subject.Equals(subject)
-                      && course.CourseNum == num
-                      && c.Season.Equals(season)
-                      && c.Year.Equals(year)
-                select c.ClassId).FirstOrDefault();
+             join c in db.Classes on course.CourseId equals c.CourseId
+             where course.Subject.Equals(subject)
+                   && course.CourseNum == num
+                   && c.Season.Equals(season)
+                   && c.Year.Equals(year)
+             select c.ClassId).FirstOrDefault();
 
         if (query == 0)
         {
@@ -240,7 +241,7 @@ public class ProfessorController : Controller
             join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
             where ac.Name == category && ac.GradeWeight == catweight
             select cour;
-        
+
         if (query.Any())
         {
             return Json(new { success = false });
@@ -284,7 +285,46 @@ public class ProfessorController : Controller
     public IActionResult CreateAssignment(string subject, int num, string season, int year, string category,
         string asgname, int asgpoints, DateTime asgdue, string asgcontents)
     {
-        return Json(new { success = false });
+        var query =
+        from c in db.Courses
+        where c.Subject.Equals(subject) && c.CourseNum == num
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
+        where ac.Name.Equals(category)
+        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+        where a.Name.Equals(asgname)
+        select a;
+
+        if (query.Any())
+        {
+            return Json(new { success = false });
+        }
+
+        var query2 =
+        from cour in db.Courses
+        where cour.Subject.Equals(subject) && cour.CourseNum == num
+        join cc in db.Classes on cour.CourseId equals cc.CourseId
+        where cc.Season.Equals(season) && cc.Year.Equals(year)
+        join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
+        where ac.Name.Equals(category)
+        select ac.AssignmentCategoriesId;
+
+        int id = query2.First();
+
+        var asgmnt = new Assignment
+        {
+            Name = asgname,
+            Contents = asgcontents,
+            MaxPoints = (uint)asgpoints,
+            DueDate = asgdue,
+            AssignmentCategoriesId = id,
+        };
+
+        db.Assignments.Add(asgmnt);
+        db.SaveChanges();
+
+        return Json(new { success = true });
     }
 
 
@@ -307,7 +347,29 @@ public class ProfessorController : Controller
     public IActionResult GetSubmissionsToAssignment(string subject, int num, string season, int year, string category,
         string asgname)
     {
-        return Json(null);
+        var query =
+
+        from c in db.Courses
+        where c.Subject.Equals(subject) && c.CourseNum == num
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
+        where ac.Name.Equals(category)
+        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+        where a.Name.Equals(asgname)
+        join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
+        join stu in db.Students on sub.UId equals stu.UId
+        select new
+        {
+            fname = stu.FirstName,
+            lname = stu.LastName,
+            uid = sub.UId,
+            time = sub.SubmissionTime,
+            score = sub.Score
+        };
+
+
+        return Json(query.ToArray());
     }
 
 
@@ -326,6 +388,27 @@ public class ProfessorController : Controller
     public IActionResult GradeSubmission(string subject, int num, string season, int year, string category,
         string asgname, string uid, int score)
     {
+        var query =
+
+        (from c in db.Courses
+         where c.Subject.Equals(subject) && c.CourseNum == num
+         join stuff in db.Classes on c.CourseId equals stuff.CourseId
+         where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+         join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
+         where ac.Name.Equals(category)
+         join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+         where a.Name.Equals(asgname)
+         join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
+         where sub.UId.Equals(uid)
+         select sub).FirstOrDefault();
+
+        if (query != null)
+        {
+            query.Score = (uint)score;
+            db.SaveChanges();
+            return Json(new { success = true });
+        }
+
         return Json(new { success = false });
     }
 
@@ -343,7 +426,21 @@ public class ProfessorController : Controller
     /// <returns>The JSON array</returns>
     public IActionResult GetMyClasses(string uid)
     {
-        return Json(null);
+        var query =
+
+        from c in db.Courses
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.UId.Equals(uid)
+        select new
+        {
+            subject = c.Subject,
+            number = c.CourseNum,
+            name = c.Name,
+            season = stuff.Season,
+            year = stuff.Year,
+        };
+
+        return Json(query.ToArray());
     }
 
 

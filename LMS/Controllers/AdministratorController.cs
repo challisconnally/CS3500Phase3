@@ -199,7 +199,7 @@ public class AdministratorController : Controller
         int id = query2.First();
         Console.WriteLine("id of course is : " + id);
 
-        var c = new Class
+        var cl = new Class
         {
             Season = season,
             Year = (uint)year,
@@ -210,7 +210,7 @@ public class AdministratorController : Controller
             CourseId = id
         };
 
-        db.Classes.Add(c);
+        db.Classes.Add(cl);
         db.SaveChanges();
 
         return Json(new { success = true });

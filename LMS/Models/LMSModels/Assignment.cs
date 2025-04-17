@@ -1,19 +1,23 @@
-﻿namespace LMS.Models.LMSModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class Assignment
+namespace LMS.Models.LMSModels
 {
-    public Assignment()
+    public partial class Assignment
     {
-        Submissions = new HashSet<Submission>();
+        public Assignment()
+        {
+            Submissions = new HashSet<Submission>();
+        }
+
+        public string Name { get; set; } = null!;
+        public int AssignmentCategoriesId { get; set; }
+        public string Contents { get; set; } = null!;
+        public DateTime DueDate { get; set; }
+        public uint MaxPoints { get; set; }
+        public int AssignmentId { get; set; }
+
+        public virtual AssignmentCategory AssignmentCategories { get; set; } = null!;
+        public virtual ICollection<Submission> Submissions { get; set; }
     }
-
-    public string Name { get; set; } = null!;
-    public int AssignmentCategoriesId { get; set; }
-    public string Contents { get; set; } = null!;
-    public DateTime DueDate { get; set; }
-    public uint MaxPoints { get; set; }
-    public int AssignmentId { get; set; }
-
-    public virtual AssignmentCategory AssignmentCategories { get; set; } = null!;
-    public virtual ICollection<Submission> Submissions { get; set; }
 }

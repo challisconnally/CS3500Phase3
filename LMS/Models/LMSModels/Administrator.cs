@@ -1,9 +1,13 @@
-﻿namespace LMS.Models.LMSModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class Administrator
+namespace LMS.Models.LMSModels
 {
-    public string UId { get; set; } = null!;
-    public string FirstName { get; set; } = null!;
-    public string LastName { get; set; } = null!;
-    public DateOnly Dob { get; set; }
+    public partial class Administrator
+    {
+        public string UId { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public DateOnly Dob { get; set; }
+    }
 }

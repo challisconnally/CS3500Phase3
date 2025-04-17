@@ -1,13 +1,17 @@
-﻿namespace LMS.Models.LMSModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class Submission
+namespace LMS.Models.LMSModels
 {
-    public string UId { get; set; } = null!;
-    public string Contents { get; set; } = null!;
-    public DateTime SubmissionTime { get; set; }
-    public uint Score { get; set; }
-    public int AssignmentId { get; set; }
+    public partial class Submission
+    {
+        public string UId { get; set; } = null!;
+        public string Contents { get; set; } = null!;
+        public DateTime SubmissionTime { get; set; }
+        public uint Score { get; set; }
+        public int AssignmentId { get; set; }
 
-    public virtual Assignment Assignment { get; set; } = null!;
-    public virtual Student UIdNavigation { get; set; } = null!;
+        public virtual Assignment Assignment { get; set; } = null!;
+        public virtual Student UIdNavigation { get; set; } = null!;
+    }
 }

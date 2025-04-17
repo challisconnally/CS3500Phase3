@@ -1,19 +1,21 @@
-﻿namespace LMS.Models.LMSModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class Course
+namespace LMS.Models.LMSModels
 {
-    public Course()
+    public partial class Course
     {
-        Classes = new HashSet<Class>();
-        Enrolleds = new HashSet<Enrolled>();
+        public Course()
+        {
+            Classes = new HashSet<Class>();
+        }
+
+        public int CourseNum { get; set; }
+        public string Name { get; set; } = null!;
+        public string Subject { get; set; } = null!;
+        public int CourseId { get; set; }
+
+        public virtual Department SubjectNavigation { get; set; } = null!;
+        public virtual ICollection<Class> Classes { get; set; }
     }
-
-    public int CourseNum { get; set; }
-    public string Name { get; set; } = null!;
-    public string Subject { get; set; } = null!;
-    public int CourseId { get; set; }
-
-    public virtual Department SubjectNavigation { get; set; } = null!;
-    public virtual ICollection<Class> Classes { get; set; }
-    public virtual ICollection<Enrolled> Enrolleds { get; set; }
 }

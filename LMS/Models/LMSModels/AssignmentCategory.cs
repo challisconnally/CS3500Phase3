@@ -1,17 +1,21 @@
-﻿namespace LMS.Models.LMSModels;
+﻿using System;
+using System.Collections.Generic;
 
-public class AssignmentCategory
+namespace LMS.Models.LMSModels
 {
-    public AssignmentCategory()
+    public partial class AssignmentCategory
     {
-        Assignments = new HashSet<Assignment>();
+        public AssignmentCategory()
+        {
+            Assignments = new HashSet<Assignment>();
+        }
+
+        public string Name { get; set; } = null!;
+        public int ClassId { get; set; }
+        public uint GradeWeight { get; set; }
+        public int AssignmentCategoriesId { get; set; }
+
+        public virtual Class Class { get; set; } = null!;
+        public virtual ICollection<Assignment> Assignments { get; set; }
     }
-
-    public string Name { get; set; } = null!;
-    public int ClassId { get; set; }
-    public uint GradeWeight { get; set; }
-    public int AssignmentCategoriesId { get; set; }
-
-    public virtual Class Class { get; set; } = null!;
-    public virtual ICollection<Assignment> Assignments { get; set; }
 }

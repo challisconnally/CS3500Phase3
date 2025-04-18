@@ -124,7 +124,7 @@ public class CommonController : Controller
         from c in db.Courses
         where c.Subject == subject && c.CourseNum == num
         join stuff in db.Classes on c.CourseId equals stuff.CourseId
-        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        where stuff.Season.Equals(season) && stuff.Year == year
         join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
         where ac.Name.Equals(category)
         join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
@@ -135,7 +135,7 @@ public class CommonController : Controller
         {
             return Content(query.First().Contents);
         }
-        else 
+        else
             return Content("");
     }
 
@@ -161,20 +161,28 @@ public class CommonController : Controller
         from c in db.Courses
         where c.Subject == subject && c.CourseNum == num
         join stuff in db.Classes on c.CourseId equals stuff.CourseId
-        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
-        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
-        where ac.Name.Equals(category)
-        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-        where a.Name.Equals(asgname)
-        join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
-        where sub.UId.Equals(uid)
-        select sub;
+        where stuff.Season.Equals(season) && stuff.Year == year
+        select stuff.ClassId;
 
-        if (query.Any())
+        int cID = query.FirstOrDefault();
+
+        var query2 =
+            from cat in db.AssignmentCategories
+            join ac in db.AssignmentCategories on cat.ClassId equals ac.ClassId
+            where ac.Name.Equals(category)
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            where a.Name.Equals(asgname)
+            join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId into s
+            from subs in s.DefaultIfEmpty()
+            where subs.UId.Equals(uid)
+            where ac.ClassId == cID
+            select subs.Contents;
+
+        if (query2.Any())
         {
-            return Content(query.First().Contents);
+            return Content(query2.First());
         }
-        else
+        
             return Content("");
     }
 

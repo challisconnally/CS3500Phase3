@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 [assembly: InternalsVisibleTo("LMSControllerTests")]
@@ -126,7 +129,7 @@ public class ProfessorController : Controller
             where course.Subject.Equals(subject)
                   && course.CourseNum == num
                   && stuff.Season.Equals(season)
-                  && stuff.Year.Equals(year)
+                  && stuff.Year == year
             select new
             {
                 fname = si.FirstName,
@@ -165,7 +168,7 @@ public class ProfessorController : Controller
              where course.Subject.Equals(subject)
                    && course.CourseNum == num
                    && c.Season.Equals(season)
-                   && c.Year.Equals(year)
+                   && c.Year == year
              select c.ClassId).FirstOrDefault();
 
         if (query == 0)
@@ -208,7 +211,7 @@ public class ProfessorController : Controller
             from cour in db.Courses
             where cour.Subject.Equals(subject) && cour.CourseNum == num
             join cc in db.Classes on cour.CourseId equals cc.CourseId
-            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            where cc.Season.Equals(season) && cc.Year == year
             join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
             select new
             {
@@ -233,14 +236,16 @@ public class ProfessorController : Controller
     public IActionResult CreateAssignmentCategory(string subject, int num, string season, int year, string category,
         int catweight)
     {
+        Console.WriteLine(subject + ", " + num + ", " + year + ", " + season);
+
         var query =
             from cour in db.Courses
             where cour.Subject.Equals(subject) && cour.CourseNum == num
             join cc in db.Classes on cour.CourseId equals cc.CourseId
-            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            where cc.Season.Equals(season) && cc.Year == year
             join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
-            where ac.Name == category && ac.GradeWeight == catweight
-            select cour;
+            where ac.Name == category
+            select ac;
 
         if (query.Any())
         {
@@ -249,12 +254,14 @@ public class ProfessorController : Controller
 
         var query2 =
             from cour in db.Courses
-            where cour.Subject.Equals(subject) && cour.CourseNum == num
             join cc in db.Classes on cour.CourseId equals cc.CourseId
-            where cc.Season.Equals(season) && cc.Year.Equals(year)
+            where cc.Season == season && cc.Year == year &&
+                    cour.Subject == subject && cour.CourseNum == num
             select cc.ClassId;
 
-        int id = query2.First();
+        int id = query2.FirstOrDefault();
+
+        Console.WriteLine("This is the id value: " + id);
         var cat = new AssignmentCategory
         {
             Name = category,
@@ -289,7 +296,7 @@ public class ProfessorController : Controller
         from c in db.Courses
         where c.Subject.Equals(subject) && c.CourseNum == num
         join stuff in db.Classes on c.CourseId equals stuff.CourseId
-        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+        where stuff.Season.Equals(season) && stuff.Year == year
         join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
         where ac.Name.Equals(category)
         join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
@@ -305,7 +312,7 @@ public class ProfessorController : Controller
         from cour in db.Courses
         where cour.Subject.Equals(subject) && cour.CourseNum == num
         join cc in db.Classes on cour.CourseId equals cc.CourseId
-        where cc.Season.Equals(season) && cc.Year.Equals(year)
+        where cc.Season.Equals(season) && cc.Year == year
         join ac in db.AssignmentCategories on cc.ClassId equals ac.ClassId
         where ac.Name.Equals(category)
         select ac.AssignmentCategoriesId;
@@ -352,24 +359,33 @@ public class ProfessorController : Controller
         from c in db.Courses
         where c.Subject.Equals(subject) && c.CourseNum == num
         join stuff in db.Classes on c.CourseId equals stuff.CourseId
-        where stuff.Season.Equals(season) && stuff.Year.Equals(year)
-        join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
-        where ac.Name.Equals(category)
-        join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-        where a.Name.Equals(asgname)
-        join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
-        join stu in db.Students on sub.UId equals stu.UId
-        select new
-        {
-            fname = stu.FirstName,
-            lname = stu.LastName,
-            uid = sub.UId,
-            time = sub.SubmissionTime,
-            score = sub.Score
-        };
+        where stuff.Season.Equals(season) && stuff.Year == year
+        select stuff.ClassId;
+
+        int cID = query.FirstOrDefault();
+
+        var query2 =
+            from p in db.AssignmentCategories
+            join ac in db.AssignmentCategories on p.ClassId equals ac.ClassId
+            where ac.Name.Equals(category)
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            where a.Name.Equals(asgname)
+            join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId into s
+            from f in s.DefaultIfEmpty()
+            join stu in db.Students on f.UId equals stu.UId into k
+            from total in k.DefaultIfEmpty()
+            where p.ClassId == cID
+            select new
+            {
+                fname = total.FirstName,
+                lname = total.LastName,
+                uid = f.UId,
+                time = f.SubmissionTime,
+                score = f.Score
+            };
 
 
-        return Json(query.ToArray());
+        return Json(query2.ToArray());
     }
 
 
@@ -393,7 +409,7 @@ public class ProfessorController : Controller
         (from c in db.Courses
          where c.Subject.Equals(subject) && c.CourseNum == num
          join stuff in db.Classes on c.CourseId equals stuff.CourseId
-         where stuff.Season.Equals(season) && stuff.Year.Equals(year)
+         where stuff.Season.Equals(season) && stuff.Year == year
          join ac in db.AssignmentCategories on stuff.ClassId equals ac.ClassId
          where ac.Name.Equals(category)
          join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
@@ -406,10 +422,63 @@ public class ProfessorController : Controller
         {
             query.Score = (uint)score;
             db.SaveChanges();
+
+            var maxQuery =
+                from s in db.Students
+                join se in db.Enrolleds on s.UId equals se.UId
+                join c in db.Classes on se.ClassId equals c.ClassId
+                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+                join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+                join cour in db.Courses on c.CourseId equals cour.CourseId
+                where s.UId.Equals(uid)
+                where cour.Subject.Equals(subject) && cour.CourseNum == num
+                where c.Season.Equals(season) && c.Year == year
+                where ac.Name.Equals(category)
+                
+                select a.MaxPoints;
+
+            var pointsQuery =
+                from s in db.Students
+                join se in db.Enrolleds on s.UId equals se.UId
+                join c in db.Classes on se.ClassId equals c.ClassId
+                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+                join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+                join cour in db.Courses on c.CourseId equals cour.CourseId
+                join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
+                where s.UId.Equals(uid)
+                where cour.Subject.Equals(subject) && cour.CourseNum == num
+                where c.Season.Equals(season) && c.Year == year
+                where ac.Name.Equals(category)
+               
+                select sub.Score;
+
+            List<uint> max = maxQuery.ToList();
+            List<uint> points = pointsQuery.ToList();
+
+            double maxTotal = 0;
+            double maxPoints = 0;
+
+            foreach (var m in max)
+            {
+                maxTotal += (double)m;
+            }
+
+            foreach (var p in points)
+            {
+                maxPoints += (double)p;
+            }
+
+            double ratio = maxPoints / maxTotal;
+
+            
+
+
             return Json(new { success = true });
         }
+        else
+            return Json(new { success = false });
 
-        return Json(new { success = false });
+
     }
 
 

@@ -112,23 +112,38 @@ public class StudentController : Controller
             from e in db.Enrolleds
             join c in db.Classes on e.ClassId equals c.ClassId
             join cour in db.Courses on c.CourseId equals cour.CourseId
-            join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-            join assign in db.Assignments on ac.AssignmentCategoriesId equals assign.AssignmentCategoriesId
-            join sub in db.Submissions on assign.AssignmentId equals sub.AssignmentId
-            where e.UId == uid
+
+            //join sub in db.Submissions on assign.AssignmentId equals sub.AssignmentId into sb
+            //from s in sb.DefaultIfEmpty()
+            where e.UId.Equals(uid)
             where cour.CourseNum == num
-            where c.Season == season
+            where c.Season.Equals(season)
             where c.Year == year
-            where cour.Subject == subject
+            where cour.Subject.Equals(subject)
+            select c.ClassId;
+
+        int cID = query.FirstOrDefault();
+
+        var query2 =
+            from ac in db.AssignmentCategories 
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            join s in db.Submissions on a.AssignmentId equals s.AssignmentId into sb
+            from sub in sb.DefaultIfEmpty()
+            where ac.ClassId == cID
             select new
             {
-                aname = assign.Name,
-                cname = ac.Name,
-                due = assign.DueDate,
-                score = sub.Score
+                 //word = c.Location
+                 aname = a.Name,
+                 cname = ac.Name,
+                 due = a.DueDate,
+                 score = (int?) sub.Score
             };
 
-        return Json(null);
+        //Console.WriteLine("this is the query: " + query.FirstOrDefault());
+
+       
+
+        return Json(query2.ToArray());
     }
 
 
@@ -152,18 +167,18 @@ public class StudentController : Controller
     public IActionResult SubmitAssignmentText(string subject, int num, string season, int year,
         string category, string asgname, string uid, string contents)
     {
-        var assignmentQuery = 
+        var assignmentQuery =
             (from course in db.Courses
-                join c in db.Classes on course.CourseId equals c.CourseId
-                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-                join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-                where course.Subject == subject
-                      && course.CourseNum == num
-                      && c.Season == season
-                      && c.Year == year
-                      && ac.Name == category
-                      && a.Name == asgname
-                        select a).FirstOrDefault();
+            join c in db.Classes on course.CourseId equals c.CourseId
+            join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            where course.Subject.Equals(subject)
+                  && course.CourseNum == num
+                  && c.Season.Equals(season)
+                  && c.Year == year
+                  && ac.Name.Equals(category)
+                  && a.Name.Equals(asgname)
+            select a).FirstOrDefault();
 
         if (assignmentQuery == null)
         {

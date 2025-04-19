@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -422,153 +423,8 @@ public class ProfessorController : Controller
         {
             query.Score = (uint)score;
             db.SaveChanges();
-
-            var cQuery =
-                //from s in db.Students
-                //join se in db.Enrolleds on s.UId equals se.UId
-                (from cl in db.Classes
-                join c in db.Classes on cl.ClassId equals c.ClassId
-                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-                join cour in db.Courses on c.CourseId equals cour.CourseId
-                where cour.Subject.Equals(subject) && cour.CourseNum == num
-                where c.Season.Equals(season) && c.Year == year
-                select ac.Name).ToList();
-
-            double scaledWeight = 0;
-            double sumCatWeights = 0;
-
-            foreach (string cat in cQuery)
-            {
-                var maxQuery =
-                    (from s in db.Students
-                    join se in db.Enrolleds on s.UId equals se.UId
-                    join c in db.Classes on se.ClassId equals c.ClassId
-                    join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-                    join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-                    join cour in db.Courses on c.CourseId equals cour.CourseId
-                    where s.UId.Equals(uid)
-                    where cour.Subject.Equals(subject) && cour.CourseNum == num
-                    where c.Season.Equals(season) && c.Year == year
-                    where ac.Name.Equals(cat)
-
-                    select a.MaxPoints).ToList();
-
-                var pointsQuery =
-                    (from s in db.Students
-                    join se in db.Enrolleds on s.UId equals se.UId
-                    join c in db.Classes on se.ClassId equals c.ClassId
-                    join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-                    join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-                    join cour in db.Courses on c.CourseId equals cour.CourseId
-                    join sub in db.Submissions on a.AssignmentId equals sub.AssignmentId
-                    where s.UId.Equals(uid)
-                    where cour.Subject.Equals(subject) && cour.CourseNum == num
-                    where c.Season.Equals(season) && c.Year == year
-                    where ac.Name.Equals(cat)
-
-                    select sub.Score).ToList();
-
-                List<uint> max = maxQuery;
-                List<uint> points = pointsQuery;
-
-                double maxTotal = 0;
-                double maxPoints = 0;
-
-                foreach (var m in max)
-                {
-                    maxTotal += (double)m;
-                }
-
-                foreach (var p in points)
-                {
-                    maxPoints += (double)p;
-                }
-
-                double ratio = maxPoints / maxTotal;
-
-                var catQuery = (from s in db.Students
-                                join se in db.Enrolleds on s.UId equals se.UId
-                                join c in db.Classes on se.ClassId equals c.ClassId
-                                join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
-                                join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
-                                join cour in db.Courses on c.CourseId equals cour.CourseId
-                                where s.UId.Equals(uid)
-                                where cour.Subject.Equals(subject) && cour.CourseNum == num
-                                where c.Season.Equals(season) && c.Year == year
-                                where ac.Name.Equals(cat)
-                                select ac.GradeWeight).FirstOrDefault();
-
-                double weighedRatio = ratio * catQuery;
-                sumCatWeights += catQuery;
-                scaledWeight += weighedRatio;
-                
-            }
-
-            double scalingFactor = 100 / sumCatWeights;
-
-            double totalScore = scalingFactor * scaledWeight;
-
-            string letterGrade = "";
-
-            if (totalScore <= 100 && totalScore >= 93)
-            {
-                letterGrade = "A";
-            }
-            else if (totalScore < 93 && totalScore >= 90)
-            {
-                letterGrade = "A-";
-            }
-            else if (totalScore < 90 && totalScore >= 87)
-            {
-                letterGrade = "B+";
-            }
-            else if (totalScore < 87 && totalScore >= 83)
-            {
-                letterGrade = "B";
-            }
-            else if (totalScore < 83 && totalScore >= 80)
-            {
-                letterGrade = "B-";
-            }
-            else if (totalScore < 80 && totalScore >= 77)
-            {
-                letterGrade = "C+";
-            }
-            else if (totalScore < 77 && totalScore >= 73)
-            {
-                letterGrade = "C";
-            }
-            else if (totalScore < 73 && totalScore >= 70)
-            {
-                letterGrade = "C-";
-            }
-            else if (totalScore < 70 && totalScore >= 67)
-            {
-                letterGrade = "D+";
-            }
-            else if (totalScore < 67 && totalScore >= 63)
-            {
-                letterGrade = "D";
-            }
-            else if (totalScore < 63 && totalScore >= 60)
-            {
-                letterGrade = "D-";
-            }
-            else if (totalScore < 60 && totalScore >= 0)
-            {
-                letterGrade = "E";
-            }
-
-            var enrollQuery = 
-                (from e in db.Enrolleds
-                where e.UId == uid
-                select e).FirstOrDefault();
-
-            if (enrollQuery != null)
-            {
-                enrollQuery.Grade = letterGrade;
-                db.SaveChanges();
-            }
+            
+            computeLetterGrade(subject, num, season, year, category, asgname, uid, score);
 
             return Json(new { success = true });
         }
@@ -700,6 +556,11 @@ public class ProfessorController : Controller
 
         double totalScore = scalingFactor * scaledWeight;
 
+        getLetterGrade(totalScore, uid);
+    }
+
+    private void getLetterGrade(double totalScore, string uid)
+    {
         string letterGrade = "";
 
         if (totalScore <= 100 && totalScore >= 93)
@@ -762,7 +623,6 @@ public class ProfessorController : Controller
             db.SaveChanges();
         }
     }
-
 
     /*******End code to modify********/
 }

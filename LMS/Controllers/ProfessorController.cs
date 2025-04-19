@@ -332,6 +332,23 @@ public class ProfessorController : Controller
         db.Assignments.Add(asgmnt);
         db.SaveChanges();
 
+        var studentsQuery =
+            (from s in db.Students
+            join se in db.Enrolleds on s.UId equals se.UId
+            join c in db.Classes on se.ClassId equals c.ClassId
+            join ac in db.AssignmentCategories on c.ClassId equals ac.ClassId
+            join a in db.Assignments on ac.AssignmentCategoriesId equals a.AssignmentCategoriesId
+            where c.Season.Equals(season) && c.Year == year
+            where ac.Name.Equals(category)
+            select s).ToList();
+
+        foreach ( var student in studentsQuery)
+        {
+            computeLetterGrade(subject, num, season, year, category, asgname, student.UId);
+        }
+
+
+
         return Json(new { success = true });
     }
 
@@ -365,6 +382,7 @@ public class ProfessorController : Controller
 
         int cID = query.FirstOrDefault();
 
+
         var query2 =
             from p in db.AssignmentCategories
             join ac in db.AssignmentCategories on p.ClassId equals ac.ClassId
@@ -385,8 +403,12 @@ public class ProfessorController : Controller
                 score = f.Score
             };
 
-
-        return Json(query2.ToArray());
+        if (query2 != null)
+        {
+            return Json(query2.ToArray());
+        }
+        else { return Json(new object[] { }); }
+       
     }
 
 
@@ -424,7 +446,7 @@ public class ProfessorController : Controller
             query.Score = (uint)score;
             db.SaveChanges();
             
-            computeLetterGrade(subject, num, season, year, category, asgname, uid, score);
+            computeLetterGrade(subject, num, season, year, category, asgname, uid);
 
             return Json(new { success = true });
         }
@@ -469,7 +491,7 @@ public class ProfessorController : Controller
 
 
     private void computeLetterGrade(string subject, int num, string season, int year, string category,
-        string asgname, string uid, int score)
+        string asgname, string uid)
     {
         var cQuery =
                //from s in db.Students
@@ -556,10 +578,10 @@ public class ProfessorController : Controller
 
         double totalScore = scalingFactor * scaledWeight;
 
-        getLetterGrade(totalScore, uid);
+        getLetterGrade(totalScore, uid, subject, num, season, year);
     }
 
-    private void getLetterGrade(double totalScore, string uid)
+    private void getLetterGrade(double totalScore, string uid, string subject, int num, string season, int year)
     {
         string letterGrade = "";
 
@@ -612,9 +634,21 @@ public class ProfessorController : Controller
             letterGrade = "E";
         }
 
+        var cIDquery =
+
+        from c in db.Courses
+        where c.Subject.Equals(subject) && c.CourseNum == num
+        join stuff in db.Classes on c.CourseId equals stuff.CourseId
+        where stuff.Season.Equals(season) && stuff.Year == year
+        select stuff.ClassId;
+
+        int cID = cIDquery.FirstOrDefault();
+
         var enrollQuery =
             (from e in db.Enrolleds
+             join c in db.Classes on e.ClassId equals c.ClassId
              where e.UId == uid
+             where e.ClassId == cID
              select e).FirstOrDefault();
 
         if (enrollQuery != null)
